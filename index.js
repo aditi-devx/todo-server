@@ -1,5 +1,6 @@
 import express from "express";
-import { port } from './secrets.js'
+import mongoose from 'mongoose';
+import { dbUrl, port } from './secrets.js'
 
 
 const app = express()
@@ -16,6 +17,16 @@ app.post('/todo', (req, res) => {
 app.get('/todo', (req, res) => {
     res.send('getTodo endpoint')
 })
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
+
+async function connectDb() {
+    try {
+        await mongoose.connect(dbUrl);
+        console.log('dataBase connected');
+        app.listen(port, () => {
+            console.log(`Todo app listening on port ${port}`)
+        })
+    } catch (error) {
+        console.log(error);
+    }
+}
+connectDb();
