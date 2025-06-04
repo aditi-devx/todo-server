@@ -1,13 +1,40 @@
 import express from "express";
 import mongoose from 'mongoose';
-import { dbUrl, port } from './secrets.js'
+import jwt from "jsonwebtoken";
+import { dbUrl, port, secret } from './secrets.js';
+import { userModel } from "./models/userModel.js";
 
 
 const app = express()
+app.use(express.json())
 
+app.post('/login', async (req, res) => {
+    try {
 
-app.post('/login', (req, res) => {
-    res.send('login endpoint')
+        const email = req.body.email;
+        const password = req.body.password;
+        //step 1: check if the user already exist or not
+        let existingUser = await userModel.findOne({ email })
+        if (existingUser) {
+            return res.json({
+                message: "user already exists"
+            })
+        }
+        await userModel.create({ email: email, password: password })
+        const token = jwt.sign({ email }, secret)
+        return res.json({
+            message: "User logged in succesfully!",
+            token
+        })
+
+    }
+    catch (error) {
+        console.log(error)
+        return res.json({
+
+            message: "error in login endpoint"
+        })
+    }
 })
 
 app.post('/todo', (req, res) => {
@@ -29,4 +56,4 @@ async function connectDb() {
         console.log(error);
     }
 }
-connectDb();
+connectDb(); 
